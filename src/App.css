@@ -1,0 +1,25 @@
+.cart-button {
+	display: none;
+	margin-right: 16px;
+}
+
+.cart-button {
+	display: none;
+	margin-right: 16px;
+}
+.shopping-card-panel {
+	min-width: 300px !important;
+	background: white !important;
+}
+
+@media screen and (max-width: 768px) {
+	.cart-button {
+		display: inline-flex;
+	}
+	.shopping-card-panel {
+		position: absolute !important;
+		min-width: 100% !important;
+		background: white !important;
+		height: 100% !important;
+	}
+}
