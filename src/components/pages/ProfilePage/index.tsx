@@ -1,24 +1,40 @@
 import React from "react";
-import { Button, Input, Typography, Form, DatePicker, message } from "antd";
+import { Button, Input, Typography, Form, DatePicker } from "antd";
+import { postUser } from "../../../redux/user/userActions.ts";
+import { useUser } from "../../../redux/user/userSelectors.ts";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 
-const ProfilePage: React.FC<{
-	onSubmit: Function;
-}> = ({ onSubmit }) => {
+const ProfilePage: React.FC = () => {
+	const user = useUser();
 	const [form] = Form.useForm();
 
-	const handleSubmit = (values: any) => {
-		message.success("Profile updated successfully!");
-		onSubmit(values);
-	};
+	const parsedDateOfBirth = user.dateOfBirth
+		? dayjs(user.dateOfBirth).isValid()
+			? dayjs(user.dateOfBirth)
+			: null
+		: null;
 
 	return (
 		<Form
 			form={form}
 			layout="vertical"
-			onFinish={handleSubmit}
+			onFinish={(values) => {
+				postUser({
+					...values,
+					dateOfBirth: values.dateOfBirth
+						? values.dateOfBirth.format("YYYY-MM-DD")
+						: null,
+				});
+			}}
 			style={{ maxWidth: 600, margin: "0 auto" }}
+			initialValues={{
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				dateOfBirth: parsedDateOfBirth,
+			}}
 		>
 			<Title level={4}>Profile</Title>
 			<Form.Item
@@ -51,7 +67,7 @@ const ProfilePage: React.FC<{
 			>
 				<Input placeholder="Email" />
 			</Form.Item>
-			<Form.Item label="Date of Birth" name="dob">
+			<Form.Item label="Date of Birth" name="dateOfBirth">
 				<DatePicker style={{ width: "100%" }} />
 			</Form.Item>
 			<Button type="primary" htmlType="submit">
