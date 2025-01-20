@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Route, Routes, Link, Navigate } from "react-router-dom";
-import { Layout, Button, Input, Flex, GetProps, Avatar } from "antd";
+import { Layout, Button, Flex, Avatar } from "antd";
 import "./App.css";
-import apiData from "./mock-data//apiData";
 import {
 	ShopOutlined,
 	ShoppingCartOutlined,
@@ -12,8 +11,7 @@ import NavBar from "./components/NavBar/index.tsx";
 import ProfilePage from "./components/pages/ProfilePage/index.tsx";
 import BooksPage from "./components/pages/BooksPage/index.tsx";
 import ShoppingCart from "./components/ShoppingCart/index.tsx";
-
-type SearchProps = GetProps<typeof Input.Search>;
+import { useUser } from "./redux/user/userSelectors.ts";
 
 const { Content, Sider } = Layout;
 
@@ -21,103 +19,8 @@ const returnInitials = (firstName: string, lastName: string) =>
 	firstName.charAt(0).toUpperCase() + lastName.charAt(0).toUpperCase();
 
 const App: React.FC = () => {
-	const [cart, setCart] = useState<
-		{
-			id: number;
-			title: string;
-			quantity: number;
-			price: number;
-			stock: number;
-		}[]
-	>([]);
-	const [search, setSearch] = useState("");
+	const user = useUser();
 	const [cartIsVisible, setCartIsVisible] = useState(true);
-	const [avatarInitials, setAvatarInitials] = useState("");
-
-	const addToCart = (book: (typeof apiData)[0]) => {
-		setCart((prevCart) => {
-			const existingItem = prevCart.find((item) => item.id === book.id);
-			if (existingItem) {
-				return prevCart.map((item) =>
-					item.id === book.id && item.quantity < book.stock
-						? { ...item, quantity: item.quantity + 1 }
-						: item
-				);
-			} else {
-				return [
-					...prevCart,
-					{
-						id: book.id,
-						title: book.title,
-						quantity: 1,
-						price: book.price,
-						stock: book.stock,
-					},
-				];
-			}
-		});
-	};
-
-	const removeFromCart = (id: number) => {
-		setCart((prevCart) => prevCart.filter((item) => item.id !== id));
-	};
-
-	const updateQuantity = (id: number, quantity: number) => {
-		setCart((prevCart) =>
-			prevCart.map((item) =>
-				item.id === id ? { ...item, quantity } : item
-			)
-		);
-	};
-
-	const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
-		setSearch(value);
-	};
-
-	const filteredBooks = apiData.filter(
-		(book) =>
-			book.title.toLowerCase().includes(search.toLowerCase()) ||
-			book.author.toLowerCase().includes(search.toLowerCase())
-	);
-
-	const total = cart.reduce(
-		(sum, item) => sum + item.price * item.quantity,
-		0
-	);
-
-	const columns = [
-		{
-			title: "Title",
-			dataIndex: "title",
-			key: "title",
-		},
-		{
-			title: "Author",
-			dataIndex: "author",
-			key: "author",
-		},
-		{
-			title: "Stock",
-			dataIndex: "stock",
-			key: "stock",
-		},
-		{
-			title: "Price",
-			dataIndex: "price",
-			key: "price",
-			render: (price: number, record: any) => `$${price.toFixed(2)}`,
-		},
-		{
-			title: "",
-			dataIndex: "price",
-			key: "price",
-			render: (price: number, record: any) => (
-				<Button type="primary" onClick={() => addToCart(record)}>
-					Add to Cart
-				</Button>
-			),
-		},
-	];
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -193,8 +96,11 @@ const App: React.FC = () => {
 											borderColor: "inherit",
 										}}
 									>
-										{avatarInitials ? (
-											avatarInitials
+										{user?.firstName && user?.lastName ? (
+											returnInitials(
+												user?.firstName,
+												user?.lastName
+											)
 										) : (
 											<UserOutlined />
 										)}
@@ -217,32 +123,8 @@ const App: React.FC = () => {
 				<Layout style={{ height: "100%", position: "relative" }}>
 					<Content style={{ padding: "24px", height: "100%" }}>
 						<Routes>
-							<Route
-								path="/books"
-								element={
-									<BooksPage
-										books={filteredBooks}
-										search={search}
-										onSearch={onSearch}
-										columns={columns}
-									/>
-								}
-							/>
-							<Route
-								path="/profile"
-								element={
-									<ProfilePage
-										onSubmit={(values) => {
-											setAvatarInitials(
-												returnInitials(
-													values?.firstName,
-													values?.lastName
-												)
-											);
-										}}
-									/>
-								}
-							/>
+							<Route path="/books" element={<BooksPage />} />
+							<Route path="/profile" element={<ProfilePage />} />
 							<Route
 								path="*"
 								element={<Navigate to="/books" replace />}
@@ -251,12 +133,7 @@ const App: React.FC = () => {
 					</Content>
 					{cartIsVisible && (
 						<Sider className="shopping-card-panel">
-							<ShoppingCart
-								cart={cart}
-								total={total}
-								removeFromCart={removeFromCart}
-								updateQuantity={updateQuantity}
-							/>
+							<ShoppingCart />
 						</Sider>
 					)}
 				</Layout>
