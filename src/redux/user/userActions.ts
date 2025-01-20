@@ -2,7 +2,6 @@ import { message } from "antd";
 import store from "../store.ts";
 import { setUser } from "./userSlice.ts";
 import { User } from "./userTypes.ts";
-import dayjs from "dayjs";
 
 export const fetchUser = async () => {
 	try {
